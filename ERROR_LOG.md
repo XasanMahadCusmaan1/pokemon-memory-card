@@ -1,5 +1,44 @@
 # Error and problem journal
 
+## 2026-11-04 — Git publication environment and JSON request obstacles
+
+- **Goal:** Create a GitHub repository and push the completed learning project.
+- **Expected:** Inspect repository and create its remote using existing authentication.
+- **Actual / exact errors:** Sandbox Git reported `fatal: detected dubious ownership in repository`; first REST creation returned `Problems parsing JSON` (HTTP 400).
+- **Locations:** Git repository inspection and PowerShell Invoke-RestMethod creation request; no application source involved.
+- **Root cause:** Sandbox identity differs from repository owner. JSON request encoding was suspected for the HTTP 400; not independently confirmed.
+- **Investigation:** Normal-user Git succeeded without a global safe.directory exception. Git Credential Manager supplied an existing login, checked against the connected account. Creation succeeded after an ASCII description and explicit UTF-8 byte encoding.
+- **Solution:** Approved normal-user execution and UTF-8 request body. Private repository created successfully; credentials remained in memory.
+- **Verification:** GitHub returned repository URL and private visibility. Git push verification tracked in PROJECT_CONTEXT.md.
+- **Prevention:** Use the repository owner's identity and explicit HTTP JSON encoding; stop on REST errors before reporting success.
+- **Learning:** Git ownership checks protect repositories; HTTP request bodies must be valid JSON with consistent encoding.
+
+## 2026-11-04 — Pokémon cache exceeds localStorage quota
+
+- **Goal:** Cache 30 Pokémon to avoid repeat detail requests.
+- **Expected:** Cache data and render shuffled cards.
+- **Actual:** Storage throws before setCards runs on the fetch path.
+- **Exact error:** `QuotaExceededError: Failed to execute 'setItem' on 'Storage': Setting the value of 'pokemon-data-30' exceeded the quota.` Screenshot points to `Cards.tsx:48:20`.
+- **Files:** `src/components/Cards.tsx`, `src/types/Pokemon.ts`.
+- **Root cause:** Browser rejected the storage write. Code caches complete API responses, not just fields in the Pokemon type. Exact contribution of existing stored data versus new payload size is unconfirmed.
+- **Investigation:** Inspected response.json return, full-list serialization, and write before state update. TypeScript annotations do not remove unused response properties at runtime.
+- **Proposed solution:** Explicitly select id, name, and required image fields before caching. Catch cache-write errors so optional persistence cannot prevent rendering. Inspect existing pokemon-data-* cache entries rather than clearing unrelated storage.
+- **Verification:** Pending; no application changes made in this review.
+- **Prevention:** Cache minimal data and treat storage operations as fallible.
+- **Learning:** Static types describe values; they do not transform or trim runtime objects. An exception stops subsequent statements unless handled.
+
+## 2026-11-04 — Suspected browser extension connection error
+
+- **Goal / expected behavior:** Inspect the locally running game without unexplained console errors.
+- **Actual / exact error:** Cards display, but the screenshot reports `Uncaught (in promise) Error: Could not establish connection. Receiving end does not exist.`
+- **Locations:** Screenshot source labels include `adblock-picreplacement.js` and `(index):1`. Reviewed `src/components/Cards.tsx` and `src/App.tsx`.
+- **Root cause:** Unconfirmed. The adblock filename suggests browser-extension messaging. Neither inspected component contains extension messaging.
+- **Investigation:** Compared console source labels with source code; screenshot shows 15 loaded cards.
+- **Solution:** No application change. Temporarily disable the relevant extension and reload to isolate the source.
+- **Verification:** Pending user test with extensions disabled. Card rendering alone does not verify all app behavior.
+- **Prevention:** Inspect error source links and reproduce without extensions before changing application code.
+- **Learning:** Browser consoles can show injected extension errors. An uncaught promise rejection is an asynchronous failure without a handler; identify its source before deciding what to fix.
+
 ## 2026-11-03 — Reported TypeScript / ESLint dependency problem
 
 1. **Goal:** Prepare the React, TypeScript, Vite, and ESLint starter.
