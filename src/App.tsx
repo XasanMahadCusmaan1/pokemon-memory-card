@@ -1,6 +1,18 @@
+import { useState } from "react";
 import Cards from "./components/Cards";
 
 function App() {
+  const [selectedId, setSelectedId] = useState<number[]>([]);
+  const [highestCore, setHighestScore] = useState<number>(0);
+
+  function getClickedCard(cardId: number) {
+    if (selectedId.includes(cardId)) {
+      setHighestScore(Math.max(highestCore, selectedId.length));
+      setSelectedId([]);
+    } else {
+      setSelectedId([...selectedId, cardId]);
+    }
+  }
 
   return (
     <main className="max-w-200 p-5 m-auto">
@@ -8,15 +20,16 @@ function App() {
         <h1 className="text-3xl font-bold">Memory Game</h1>
         <div className="scoreboard flex gap-2 text-xl">
           <span>
-            Score:<strong> 0 </strong>
+            Score:<strong> {selectedId.length} </strong>
           </span>
           <span>
-            HighestScore:<strong> 0 </strong>
+            HighestScore:
+            <strong> {highestCore} </strong>
           </span>
         </div>
       </header>
       <section className="Cards">
-        <Cards />
+        <Cards getClickedCard={getClickedCard} />
       </section>
     </main>
   );

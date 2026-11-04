@@ -1,24 +1,31 @@
 import { useEffect, useState } from "react";
 import type { Pokemon } from "../types/Pokemon";
 
-function Cards() {
+type CardsProps = {
+  getClickedCard: (id: number) => void;
+};
+function Cards({ getClickedCard }: CardsProps) {
   const [cards, setCards] = useState<Pokemon[]>([]);
+
   useEffect(() => {
+    const ids = Array.from({ length: 15 }, (_, index) => index + 1);
     async function getPokemon() {
-      const pokemonList: Pokemon[] = [];
-      for (let id = 1; id <= 15; id++) {
-        const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`);
+      const pokemonList = await Promise.all(
+        ids.map(async (id): Promise<Pokemon> => {
+          const response = await fetch(
+            `https://pokeapi.co/api/v2/pokemon/${id}`,
+          );
 
-        if (!response.ok) {
-          throw new Error(`Request failed: ${response.status}`);
-        }
-        const data: Pokemon = await response.json();
+          if (!response.ok) {
+            throw new Error(`Request failed : ${response.status}`);
+          }
 
-        pokemonList.push(data);
-      }
+          return await response.json();
+        }),
+      );
+
       setCards(pokemonList);
     }
-
     getPokemon();
   }, []);
 
@@ -29,16 +36,21 @@ function Cards() {
   return (
     <section className="grid grid-cols-5 gap-5">
       {cards.map((pokemon) => (
-          <div className="card cursor-pointer border" key={pokemon.id}>
-            <img className="w-30 h-30"
-              src={
-                pokemon.sprites.other["official-artwork"].front_default ??
-                undefined
-              }
-              alt={pokemon.name}
-            />
-            <span>{pokemon.name}</span>
-          </div>
+        <div
+          className="card cursor-pointer border flex items-center justify-center flex-col p-2"
+          key={pokemon.id}
+          onClick={() => getClickedCard(pokemon.id)}
+        >
+          <img
+            className="w-30 h-30"
+            src={
+              pokemon.sprites.other["official-artwork"].front_default ??
+              undefined
+            }
+            alt={pokemon.name}
+          />
+          <span>{pokemon.name}</span>
+        </div>
       ))}
     </section>
   );
